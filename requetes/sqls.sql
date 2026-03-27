@@ -1,6 +1,7 @@
 -- Pays sans données pop, sans données bien-être: BGR Bulgarie, HRV Croatie, SVN Slovénie
 
 
+
 set variable bien_etre = 'C:\php_projects\hackaviz_2026\data\parquet_long\bien_etre.parquet';
 set variable depenses_euro = 'C:\php_projects\hackaviz_2026\data\parquet_long\depenses_euro.parquet';
 set variable population = 'C:\php_projects\hackaviz_2026\data\parquet_long\population.parquet';
@@ -79,12 +80,13 @@ with bugets as(
 	inner join read_parquet(getvariable('population')) p on p.Cde_Pays = d.Cde_Pays and p."Année" = d."Année"
 	inner join bugets g on g.cde_pays = d.cde_pays and g.annee = d."Année"
 	left join read_parquet(getvariable('bien_etre')) b on b.Cde_pays = d.Cde_pays and b."Année" = d."Année" and b.Mesure = 'Satisfaction à l’égard de la vie'
-	--where d.cde_pays = 'BGR' and d.année = 2024
+	where d.année < 2024
 ), all_datas as(
 	select cde_pays, max(pays) pays, annee, theme, max(valeur) valeur, round(1000000000*sum((montant))/max(Total)) euros_per_hab, 100*sum(montant) / max(budget) txbudget
 	from depense_pop 
+	where valeur is not null
 	group by cde_pays, annee, theme
-	order by annee, pays
+	order by annee, pays, euros_per_hab desc
 )
 select row_number() over(partition by annee) clst, * from (
 select cde_pays, max(pays) pays, annee, max(valeur) valeur, sum(euros_per_hab) euros_per_hab
@@ -103,13 +105,6 @@ group by Cde_pays --année, Cde_pays
 order by nb desc --année, Cde_pays
 
 select distinct année from read_parquet(getvariable('depenses_euro')) d where pays = 'France'
-
-
-
-
-
-
-
 
 
 
