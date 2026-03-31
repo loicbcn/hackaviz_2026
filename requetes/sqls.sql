@@ -1,6 +1,81 @@
 -- Pays sans données pop, sans données bien-être: BGR Bulgarie, HRV Croatie, SVN Slovénie
 
+set variable bien_etre = 'C:\projets\hackaviz_2026\data\parquet_long\bien_etre.parquet';
+set variable depenses_euro = 'C:\projets\hackaviz_2026\data\parquet_long\depenses_euro.parquet';
+set variable population = 'C:\projets\hackaviz_2026\data\parquet_long\population.parquet';
+set variable pyramide_age = 'C:\projets\hackaviz_2026\data\parquet_long\pyramide_age.parquet';
+set variable pib = 'C:\projets\hackaviz_2026\data\parquet_long\pib.parquet';
+set variable impots = 'C:\projets\hackaviz_2026\data\parquet_long\impots.parquet';
+set variable dette = 'C:\projets\hackaviz_2026\data\parquet_long\dette.parquet';
+set variable themes_finance = 'C:\projets\hackaviz_2026\data\themes_finance.ods';
 
+load  spatial;
+
+select pays, sum(txpop) from(
+
+	select Pays, "Âge" age, sum("Valeur_Mesurée") txpop
+	from read_parquet(getvariable('pyramide_age'))
+	where "Année" = 2023 and Mesure = 'Pourcentage de la population' and sexe = 'Total'
+	group by Pays,  age
+	order by Pays, age
+	
+) a 
+group by pays
+
+-- Dépenses / habitant / année / domaines  
+copy(
+
+with bugets as(
+	select Cde_pays cde_pays, max(Pays) pays, "Année" annee, sum(Montant) budget
+	from read_parquet(getvariable('depenses_euro')) d 
+	inner join st_read(getvariable('themes_finance')) t on t.code=substr("Cde_Dépense", 3, 2)
+	group by Cde_pays, "Année"
+), depense_pop as(
+	select substr(d."Cde_Dépense", 3, 2) code_theme, d."Année" annee, d.Cde_Pays cde_pays, d.Pays pays, d.Montant montant, 
+	t.theme, b."Valeur_Mesurée" valeur , p.Total, g.budget
+	from read_parquet(getvariable('depenses_euro')) d
+	inner join st_read(getvariable('themes_finance')) t on t.code =substr("Cde_Dépense", 3, 2)
+	inner join read_parquet(getvariable('population')) p on p.Cde_Pays = d.Cde_Pays and p."Année" = d."Année"
+	inner join bugets g on g.cde_pays = d.cde_pays and g.annee = d."Année"
+	left join read_parquet(getvariable('bien_etre')) b on b.Cde_pays = d.Cde_pays and b."Année" = d."Année" and b.Mesure = 'Satisfaction à l’égard de la vie'
+	where d.année < 2024
+)--, all_datas as(
+	select p.cde_pays, max(p.pays) pays, p.annee, p.theme, max(p.valeur) valeur, round(1000000000*sum((p.montant))/max(Total)) euros_per_hab, 
+	100*sum(p.montant) / max(p.budget) txbudget, max(d."Valeur_Mesurée") dette_tx_pib
+	from depense_pop p
+	left join read_parquet(getvariable('dette')) d on d.Cde_pays = p.cde_pays and d."Année" = p.annee and d."unité" = 'Pourcentage du PIB'
+	group by p.cde_pays, p.annee, theme
+	order by p.annee, pays, euros_per_hab desc
+	
+)
+select row_number() over(partition by annee) clst, * from (
+select cde_pays, max(pays) pays, annee, max(valeur) valeur, sum(euros_per_hab) euros_per_hab, max(dette_tx_pib) dette_tx_pib
+from all_datas
+where valeur is not null
+group by annee, cde_pays
+order by annee, valeur desc
+)
+order by annee, valeur desc
+
+)
+to 'C:\projets\hackaviz_2026\data\transfo\classements.json' (ARRAY);
+
+
+select pays, max(montant) pib 
+from read_parquet(getvariable('pib'))
+group by pays
+order by pib desc
+
+select pays, max("Valeur_Mesurée") dette_tx_pib
+from read_parquet(getvariable('dette'))
+where "unité" = 'Pourcentage du PIB'
+group by pays
+order by dette_tx_pib desc
+
+
+
+
+---------------------------
 
 set variable bien_etre = 'C:\php_projects\hackaviz_2026\data\parquet_long\bien_etre.parquet';
 set variable depenses_euro = 'C:\php_projects\hackaviz_2026\data\parquet_long\depenses_euro.parquet';

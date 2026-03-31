@@ -1,0 +1,11 @@
+@import "bretzel_layouts.css";
+html, body {font-family: consolas, monospace; }
+
+.drapeau{
+    width: 20px;
+    height: 15px;
+    margin-right: 5px;
+    display: inline-block;  
+}
+.num {text-align: right;    }
+.lst_clst{padding: 50px 0;}
