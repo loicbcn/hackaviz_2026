@@ -8,14 +8,24 @@ $annees = [2013,2018,2021,2022,2023];
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-    <div class="lst_clst" data-layout="reel" data-gap="m" data-scroll="center">
-        <?php foreach($annees as $an) : ?>
+    <div class="oneyear">
+        <div class="" data-layout="switcher">
+        <?php foreach($annees as $an) :?>
+                <div class="item">
+                    <h2><?php echo $an; ?></h2>
+                    <?php echo getclstfromyear($an); ?>
+                </div>
+        <?php endforeach; ?>
+        </div>
+    </div>
+    <!-- <div class="lst_clst" data-layout="reel" data-gap="m" data-scroll="center">
+        <?php foreach($annees as $an) : break; ?>
 
                 <div class="item">
                 <?php echo getclstfromyear($an); ?>
                 </div>
 
         <?php endforeach; ?>
-    </div>
+    </div> -->
 </body>
 </html>
