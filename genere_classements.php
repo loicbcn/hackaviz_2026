@@ -8,15 +8,15 @@ function getclstfromyear($year) {
         if($clst["annee"] != $year){
             continue;
         }
-        $classt = $clst["clst"]<10 ? '&nbsp;'.$clst["clst"] : $clst["clst"];
+        $classt = $clst["clst"]<10 ? '0'.$clst["clst"] : $clst["clst"];
         $bienetre = number_format($clst["satisfaction"], 2, '.', ' ');
         $dette = $clst["dette_tx_pib"] ? number_format($clst["dette_tx_pib"], 2, '.', ' ') : 'N/A';
         $euros_per_hab = number_format($clst["depense_par_hab"], 0, '.', ' ');
         $pays = $clst["pays"];
         $img = "<img class='drapeau' src='data/drapeaux/{$clst['cde_pays']}.svg' alt='{$pays}'>";
-        $result[] = '<div class="card">
+        $result[] = '<div id="card_'. $clst["cde_pays"] .'_'. $clst["annee"] .'" class="card">
                     <span class="clst">'. $classt .'</span>
-                    <div class="satisfaction"><strong>'. $bienetre .'</strong>&nbsp'. getsquaresvg($clst["satisfaction"], '#2fdb04', 10, 10, 'white', 1) .'</div>
+                    <div class="satisfaction"><strong id="satis_'. $clst["cde_pays"] .'_'. $clst["annee"] .'">'. $bienetre .'</strong>&nbsp'. getsquaresvg($clst["satisfaction"], '#2fdb04', 10, 10, 'white', 1) .'</div>
         <div class="card-title"><h3>'. $img . $pays .'</h3></div>
         <div class="card-body">
             <div class="card-row">'. getcirclesvg("rgba(0,0,0,0.8)", $dette, 'none', 0 ) .'</div>

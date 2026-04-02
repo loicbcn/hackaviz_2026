@@ -63,7 +63,7 @@
 
 /* Reel */
 [data-layout*="reel"] {
-  --item-size: 35%; /* largeur des enfants (% du conteneur) */
+  --item-size: 25%; /* largeur des enfants (% du conteneur) */
 
   display: flex;
   max-width: 100%;

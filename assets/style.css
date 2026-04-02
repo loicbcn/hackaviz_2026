@@ -1,6 +1,8 @@
 @import "bretzel_layouts.css";
 html, body {font-family: consolas, monospace; }
 
+#contyears{position:relative; z-index:10;}
+
 .drapeau{
     width: 20px;
     height: 15px;
@@ -15,6 +17,7 @@ html, body {font-family: consolas, monospace; }
     border-radius: 5px;
     padding: 15px;
     margin: 10px;
+    background-color: rgba(255,255,255,0.8);
     box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
 }
 
@@ -40,4 +43,22 @@ html, body {font-family: consolas, monospace; }
     right:5px;
     color:#2fdb04;
     text-shadow: 1px 1px 0px rgba(0,0,0,1), -1px -1px 0px rgba(0,0,0,1), -1px 1px 0px rgba(0,0,0,1), 1px -1px 0px rgba(0,0,0,1); 
+}
+
+[data-layout*="reel"]{
+    overflow: visible;
+}
+.item.empty{ width: 40px !important; 
+    flex-basis: var(--null);
+  margin-left: -20px; /* Adapt 20px gap to 5px */
+  margin-right: -20px;
+}
+
+.item.empty h2{font-size: 1rem;}
+
+h2{text-align:center;}
+
+.card.highlight {
+    border-color: #ff0000;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
 }
