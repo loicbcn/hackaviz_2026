@@ -1,5 +1,3 @@
-
-
 <?php
 $data = json_decode(file_get_contents("data/transfo/classements.json"), true);
 
@@ -10,28 +8,49 @@ function getclstfromyear($year) {
         if($clst["annee"] != $year){
             continue;
         }
-        $bienetre = number_format($clst["satisfaction"], 2, ',', ' ');
-        $dette = $clst["dette_tx_pib"] ? number_format($clst["dette_tx_pib"], 2, ',', ' ') : 'N/A';
-        $euros_per_hab = number_format($clst["depense_par_hab"], 0, ',', ' ');
+        $classt = $clst["clst"]<10 ? '&nbsp;'.$clst["clst"] : $clst["clst"];
+        $bienetre = number_format($clst["satisfaction"], 2, '.', ' ');
+        $dette = $clst["dette_tx_pib"] ? number_format($clst["dette_tx_pib"], 2, '.', ' ') : 'N/A';
+        $euros_per_hab = number_format($clst["depense_par_hab"], 0, '.', ' ');
         $pays = $clst["pays"];
         $img = "<img class='drapeau' src='data/drapeaux/{$clst['cde_pays']}.svg' alt='{$pays}'>";
-        $result[] = '<div class="card"><div class="card-title"><h3>'. $img . $pays . $img .'</h3></div>
+        $result[] = '<div class="card">
+                    <span class="clst">'. $classt .'</span>
+                    <div class="satisfaction"><strong>'. $bienetre .'</strong>&nbsp'. getsquaresvg($clst["satisfaction"], '#2fdb04', 10, 10, 'white', 1) .'</div>
+        <div class="card-title"><h3>'. $img . $pays .'</h3></div>
         <div class="card-body">
-            <div class="satisfaction">'. getsquaresvg(round($clst["satisfaction"]), '#2fdb04', 10, 10, 'white', 1) .'
-            <div class="card-row"><span class="card-label">Bien être</span><span class="card-value">'. $bienetre .'</span></div>
-            <div class="card-row"><span class="card-label">€/habitant</span><span class="card-value">'. $euros_per_hab .'</span></div>
-            <div class="card-row"><span class="card-label">Dette</span><span class="card-value">'. $dette .'</span></div>
-        </div></div></div>';
+            <div class="card-row">'. getcirclesvg("rgba(0,0,0,0.8)", $dette, 'none', 0 ) .'</div>
+        </div></div>';
+
     }
     return implode("", $result);
 }
 
 function getsquaresvg($number, $color, $width = 20, $height = 20, $stroke = 'none', $stroke_width = 0) {
     $svgs = [];
-    for($i = 0; $i < $number; $i++){
+    $partie_entiere = floor($number);
+    if($number - $partie_entiere > 0){
+        $partial_width = ($number - $partie_entiere) * $width;
+        $svgs[] = '<svg width="' . $partial_width . '" height="' . $height . '"><rect width="' . $partial_width . '" height="' . $height . '" fill="' . $color . '" stroke="' . $stroke . '" stroke-width="' . $stroke_width . '"/></svg>';
+    }
+
+    for($i = 0; $i < $partie_entiere; $i++){
         $svgs[] = '<svg width="' . $width . '" height="' . $height . '"><rect width="' . $width . '" height="' . $height . '" fill="' . $color . '" stroke="' . $stroke . '" stroke-width="' . $stroke_width . '"/></svg>';
     }
+
     return implode("", $svgs);
+}
+
+function getcirclesvg($color, $diameter, $stroke = 'none', $stroke_width = 0) {
+    //$diameter = $diameter*50/100;
+    $diam = 5*sqrt($diameter / pi()) * 2;
+    $svg= '<svg width="' . $diam . '" height="' . $diam . '">
+        <circle cx="' . ($diam / 2) . '" cy="' . ($diam / 2) . '" r="' . ($diam / 2) . '" fill="' . $color . '" stroke="' . $stroke . '" stroke-width="' . $stroke_width . '"/>
+         <text font-family="consolas, monospace" x="50%" y="50%" text-anchor="middle" fill="white" dy=".3em">'.round($diameter).'%</text>
+        </svg>';
+    
+
+    return $svg;
 }
 
 
