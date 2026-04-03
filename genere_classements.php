@@ -1,5 +1,6 @@
 <?php
 $data = json_decode(file_get_contents("data/transfo/classements.json"), true);
+$data_detail = json_decode(file_get_contents("data/transfo/alldatas.json"), true);
 
 function getclstfromyear($year) { 
     global $data;
@@ -15,13 +16,17 @@ function getclstfromyear($year) {
         $pays = $clst["pays"];
         $img = "<img class='drapeau' src='data/drapeaux/{$clst['cde_pays']}.svg' alt='{$pays}'>";
         $result[] = '<div id="card_'. $clst["cde_pays"] .'_'. $clst["annee"] .'" class="card">
-                    <span class="clst">'. $classt .'</span>
+                    <span data-year="'. $clst["annee"] .'" class="clst">'. $classt .'</span>
                     <div class="satisfaction"><strong id="satis_'. $clst["cde_pays"] .'_'. $clst["annee"] .'">'. $bienetre .'</strong>&nbsp'. getsquaresvg($clst["satisfaction"], '#2fdb04', 10, 10, 'white', 1) .'</div>
-        <div class="card-title"><h3>'. $img . $pays .'</h3></div>
-        <div class="card-body">
-            <div class="card-row">'. getcirclesvg("rgba(0,0,0,0.8)", $dette, 'none', 0 ) .'</div>
-        </div></div>';
-
+        <div data-layout="repel" style="margin-top:5px;">
+            <div class="card-title item">
+                <h3>'. $img . $pays .'</h3>
+            </div>
+            <div class="item">
+                <div class="card-row">'. getcirclesvg("rgba(0,0,0,0.8)", $dette, 'none', 0 ) .'</div>    
+            </div>
+        </div>
+        </div>';
     }
     return implode("", $result);
 }

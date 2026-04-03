@@ -17,14 +17,283 @@ const pays_couleur = {
   "SVK": "rgba(0, 91, 187, 0.5)"
 };
 
+let ticking = false;
+
 $(function() {
+
+    $('.card').on('click', function() {
+        const country = $(this).attr('id').split('_')[1];
+        const countryname = $(this).find('.card-title h3').text();
+
+        // graph finance
+        let serie1chart1 = {
+            name: 'Dette/hab', 
+            data: [], 
+            showInLegend:true, 
+            color: 'rgba(0,0,0,.4)', 
+            borderColor: 'rgba(0,0,0,1)',
+            dataLabels: {
+                allowOverlap:false,
+                style: {
+                color: 'rgba(0,0,0,1)',
+                fontSize: '10px',
+                textOutline: false 
+                }
+            }
+        };
+
+        let serie2chart1 = {
+            name: 'Impôts/hab', 
+            data: [], 
+            showInLegend:true, 
+            color: 'rgba(255,0,0,.4)', 
+            borderColor: 'rgba(255,0,0,1)',
+            dataLabels: {
+                allowOverlap:false,
+                style: {
+                color: 'rgba(255,0,0,1)',
+                fontSize: '10px',
+                textOutline: false 
+                }
+            }
+        };
+
+        let serie3chart1 = {
+            name: 'Budget/hab', 
+            data: [], 
+            showInLegend:true, 
+            color: 'rgba(0, 89, 206, 0.4)', 
+            borderColor: 'rgb(0, 89, 206)',
+            dataLabels: {
+                allowOverlap:false,
+                style: {
+                color:'rgba(0, 89, 206, 1)',
+                fontSize: '10px',
+                textOutline: false 
+                }
+            }
+        };
+
+        let serie1chart2 = {
+            name: 'Moins de 15 ans', 
+            data: [], 
+            showInLegend:true, 
+            shadow:false,
+            color: 'rgba(252, 143, 0,.4)', 
+            borderColor: 'rgb(252, 143, 0)',
+            dataLabels: {
+                allowOverlap:false,
+                style: {
+                color: 'rgba(252, 143, 0,1)',
+                fontSize: '10px',
+                textOutline: false 
+                }
+            }
+        };
+        let serie2chart2 = {
+            name: 'De 15 à 64 ans', 
+            data: [], 
+            showInLegend:true, 
+            color: 'rgba(238, 0, 186,.4)', 
+            borderColor: 'rgb(238, 0, 186)',
+            dataLabels: {
+                allowOverlap:false,
+                style: {
+                color: 'rgba(238, 0, 186,1)',
+                fontSize: '10px',
+                textOutline: false 
+                }
+            }
+        };
+        let serie3chart2 = {
+            name: '65 ans et plus', 
+            data: [], 
+            showInLegend:true, 
+            color: 'rgba(0,0,0,.4)', 
+            borderColor: 'rgba(0,0,0,1)',
+            dataLabels: {
+                allowOverlap:false,
+                style: {
+                color: 'rgba(0,0,0,1)',
+                fontSize: '10px',
+                textOutline: false 
+                }
+            }
+        };
+
+        const imgdrapeau =`<img class='drapeau' src='data/drapeaux/${country}.svg' alt="${countryname}" />`;
+        $('#modal').html('<h2>' +imgdrapeau +  countryname +  imgdrapeau +'</h2><h3>'+ countryname +'- Finances</h3><div id="chart1"></div><hr><h3>'+ countryname +' - Démographie</h3><div id="chart2"></div>');
+        let min1 = 0;
+        let max1 = 0;
+
+        data_clst.forEach(clst => {
+            if ( clst.cde_pays === country ) {
+                if ( clst.dette_par_hab*-1 < min1 ) {
+                    min1 = clst.dette_par_hab*-1;
+                }
+                if ( clst.impot_hab*-1 < min1 ) {
+                    min1 = clst.impot_hab*-1;
+                }
+                if( clst.depense_par_hab > max1 ) {
+                    max1 = clst.depense_par_hab;
+                }
+
+                serie1chart1.data.push({
+                    //name: clst.annee,
+                    y: clst.dette_par_hab*-1,
+                    x: clst.annee
+                });
+                serie2chart1.data.push({
+                    //name: clst.annee,
+                    y: clst.impot_hab*-1,
+                    x: clst.annee
+                });
+                serie3chart1.data.push({
+                    //name: clst.annee,
+                    y: clst.depense_par_hab,
+                    x: clst.annee
+                });
+
+                serie1chart2.data.push({
+                    //name: clst.annee,
+                    y: clst.moins_15ans,
+                    x: clst.annee
+                });
+                serie2chart2.data.push({
+                    //name: clst.annee,
+                    y: clst.entre_15_64,
+                    x: clst.annee
+                });
+                serie3chart2.data.push({
+                    //name: clst.annee,
+                    y: clst.sup_64,
+                    x: clst.annee
+                });
+
+            }
+        });
+
+        $('#modal').modal();
+        drawchart1([serie1chart1, serie2chart1, serie3chart1], {min:min1, max:max1});
+        drawchart2([serie1chart2, serie2chart2, serie3chart2], {min:0, max:100});
+    });
+    
+    function drawchart1(serie, params) {
+
+        Highcharts.chart('chart1', {
+                credits: { enabled:false },
+                chart: {
+                    type: 'column',
+                    height:400,
+                    marginTop:20
+                },
+                title: {
+                    text: undefined
+                },
+                legend:{
+                    enabled: true,
+                    floating: true,
+                    verticalAlign: 'top',
+                    align: 'right',
+                    y:-15
+                },
+                xAxis: {
+                    tickPositioner: function() {
+                        return this.series[0].xData;
+                    },
+                    labels: {
+                        //rotation: -45
+                    }
+                },
+                yAxis: {
+                        min: params.min,
+                        max: params.max,
+                        title: {
+                            text: '€ par habitant'
+                        }
+                },
+                plotOptions: {
+                    series: {
+                        dataLabels: {
+                            enabled: true,
+                            formatter: function() {
+                                return new Intl.NumberFormat('fr-FR',{minimumFractionDigits: 0, maximumFractionDigits: 0}).format(this.y);
+                            }
+                        },
+                        tooltip: {
+                            pointFormatter: function() {
+                                return '<span style="color:' + this.color + '">\u25CF</span> ' + this.series.name + ': <b>' + new Intl.NumberFormat('fr-FR',{minimumFractionDigits: 0, maximumFractionDigits: 0}).format(this.y) + ' €</b><br/>';
+                            }
+                        },
+                    }
+                },
+
+                series : serie
+            });
+    }
+
+    function drawchart2(serie, params) {
+        Highcharts.chart('chart2', {
+                credits: { enabled:false },
+                chart: {
+                    type: 'column',
+                    height:400,
+                    marginTop:20
+                },
+                title: {
+                    text: undefined
+                },
+                legend:{
+                    enabled: true,
+                    floating: true,
+                    verticalAlign: 'top',
+                    align: 'right',
+                    y:-15
+                },
+                xAxis: {
+                    tickPositioner: function() {
+                        return this.series[0].xData;
+                    },
+                    labels: {
+                        //rotation: -45
+                    }
+                },
+                yAxis: {
+                        min: params.min,
+                        max: params.max,
+                        title: {
+                            text: '% de la population'
+                        }
+                },
+                plotOptions: {
+                    series: {
+                        dataLabels: {
+                            enabled: true,
+                            formatter: function() {
+                                return new Intl.NumberFormat('fr-FR',{minimumFractionDigits: 0, maximumFractionDigits: 0}).format(this.y)+ ' %'
+                            }
+                        },
+                        tooltip: {
+                            pointFormatter: function() {
+                                return '<span style="color:' + this.color + '">\u25CF</span> ' + this.series.name + ': <b>' + new Intl.NumberFormat('fr-FR',{minimumFractionDigits: 0, maximumFractionDigits: 0}).format(this.y) + ' %</b><br/>';
+                            }
+                        },
+                    }
+                },
+
+                series : serie
+            });
+    }
 
     $('.card').hover(function() { 
         const country = $(this).attr('id').split('_')[1];
         $('.card[id^="card_' + country + '_"]').addClass('highlight');
+        connectCountry(country);
     }, function(){
         const country = $(this).attr('id').split('_')[1];
         $('.card[id^="card_' + country + '_"]').removeClass('highlight');
+        ticking = false; // reset pour éviter un redraw inutile
+        redrawThrottle();
     });
 
     generateconnectors();
@@ -33,7 +302,8 @@ $(function() {
     window.addEventListener('scroll', redrawThrottle);
 });
 
-let ticking = false;
+
+
 function redrawThrottle() {
     if (!ticking) {
         requestAnimationFrame(() => {
@@ -49,6 +319,13 @@ function redrawThrottle() {
     }
 }
 
+function connectCountry(country) {
+        annees.forEach((year, idx) => {
+            if(annees[idx+1]){
+                connectElements('#card_' + country + '_' + year, '#card_' + country + '_' + annees[idx+1], 25);
+            }
+        });
+}
 
 function generateconnectors() {
     if($('#item_' + annees[0]).width() > window.innerWidth/2){ 
@@ -59,7 +336,7 @@ function generateconnectors() {
         annees.forEach((year, idx) => {
             if(annees[idx+1]){
                 const satis = $('#satis_' + country + '_' + year).text()*1;
-                connectElements('#card_' + country + '_' + year, '#card_' + country + '_' + annees[idx+1], satis);
+                connectElements('#card_' + country + '_' + year, '#card_' + country + '_' + annees[idx+1], 4);
             }
         });
 
@@ -67,7 +344,7 @@ function generateconnectors() {
 
 }
 
-function connectElements(selector1, selector2, width) {
+function connectElements(selector1, selector2, width=4) {
     const strokecolor = pays_couleur[selector1.split('_')[1]] || '#333';
     let svg = document.getElementById("connections");
 
@@ -130,7 +407,7 @@ function connectElements(selector1, selector2, width) {
 
     path.setAttribute("d", d);
     path.setAttribute("stroke", strokecolor);
-    path.setAttribute("stroke-width", 4);
+    path.setAttribute("stroke-width", width);
     path.setAttribute("fill", "none");
 
     svg.appendChild(path);

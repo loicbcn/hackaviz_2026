@@ -6,12 +6,13 @@ $annees = [2013,2018,2021,2022,2023];
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Hackaviz 2026</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 
     <div class="container">
-        <div id="contyears" class="" data-layout="reel" data-gap="xl" data-scroll="center">
+        <div id="contyears" class="" data-layout="switcher" data-gap="xl" data-scroll="center">
         <?php //foreach($annees as $an) :?>
         <?php for($an =$annees[0]; $an <= $annees[count($annees) - 1]; $an++) {
                 if(in_array($an, $annees)) {
@@ -39,12 +40,19 @@ $annees = [2013,2018,2021,2022,2023];
 
         <?php endforeach; ?>
     </div> -->
+<div id="modal" class="modal" style="height: initial; max-height: 90%; max-width: 80%; overflow-y: auto; overflow-x: hidden;">
+    pim
+</div>
 <script>
     const annees = <?php echo json_encode($annees); ?>;
+    const data_detail = <?php echo json_encode($data_detail); ?>;
+    const data_clst = <?php echo json_encode($data); ?>;
 </script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"
 			  integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
 			  crossorigin="anonymous"></script>
+<script src="assets/highcharts.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
 <script src="assets/script.js"></script>
 </body>
 </html>

@@ -1,6 +1,13 @@
 @import "bretzel_layouts.css";
 html, body {font-family: consolas, monospace; }
 
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.container{ padding: 0 5px;}
+
 #contyears{position:relative; z-index:10;}
 
 .drapeau{
@@ -15,8 +22,8 @@ html, body {font-family: consolas, monospace; }
 .card {
     border: 1px solid #ccc;
     border-radius: 5px;
-    padding: 15px;
-    margin: 10px;
+    padding: 5px;
+    margin: 20px 0;
     background-color: rgba(255,255,255,0.8);
     box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
 }
@@ -47,13 +54,22 @@ html, body {font-family: consolas, monospace; }
 
 [data-layout*="reel"]{
     overflow: visible;
+    --item-size: 15%;
 }
+/*
 .item.empty{ width: 40px !important; 
     flex-basis: var(--null);
-  margin-left: -20px; /* Adapt 20px gap to 5px */
+  margin-left: -20px; 
   margin-right: -20px;
 }
+*/
 
+[data-layout*="switcher"] {
+  & > .item.empty {
+    flex-basis: calc((var(--switcher-min-size) - 100%) * 999);
+    flex-grow: 0;
+  }
+}
 .item.empty h2{font-size: 1rem;}
 
 h2{text-align:center;}
@@ -62,3 +78,8 @@ h2{text-align:center;}
     border-color: #ff0000;
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
 }
+.jquery-modal{z-index:100}
+
+.modal h2 { margin:0}
+.modal h3 { margin:0;}
+.modal hr { margin:0 0 10px; color:#ccc}
