@@ -21,6 +21,15 @@ let ticking = false;
 
 $(function() {
 
+    generateconnectors();
+
+    window.addEventListener('resize', redrawThrottle);
+    window.addEventListener('scroll', redrawThrottle);
+
+    $('#lk_legend').on('click', function(){
+        $('#modallegende').modal();
+    });
+
     $('.card').on('click', function() {
         const country = $(this).attr('id').split('_')[1];
         const countryname = $(this).find('.card-title h3').text();
@@ -68,6 +77,22 @@ $(function() {
                 allowOverlap:false,
                 style: {
                 color:'rgba(0, 89, 206, 1)',
+                fontSize: '10px',
+                textOutline: false 
+                }
+            }
+        };
+
+        let serie4chart1 = {
+            name: 'PIB/hab', 
+            data: [], 
+            showInLegend:true, 
+            color: 'rgba(224, 52, 0, 0.4)', 
+            borderColor: 'rgb(224, 52, 0)',
+            dataLabels: {
+                allowOverlap:false,
+                style: {
+                color:'rgba(224, 52, 0, 1)',
                 fontSize: '10px',
                 textOutline: false 
                 }
@@ -122,12 +147,38 @@ $(function() {
         };
 
         const imgdrapeau =`<img class='drapeau' src='data/drapeaux/${country}.svg' alt="${countryname}" />`;
-        $('#modal').html('<h2>' +imgdrapeau +  countryname +  imgdrapeau +'</h2><h3>'+ countryname +'- Finances</h3><div id="chart1"></div><hr><h3>'+ countryname +' - Démographie</h3><div id="chart2"></div>');
+
+        let template = `
+        <div data-layout="duo" data-gap="l" style="align-items: center;">
+            <div class="item">
+            <h2>${imgdrapeau}${countryname}${imgdrapeau}</h2>
+            </div>
+            <div class="item">
+            @clst_annee@
+            </div>
+        </div>
+        <div data-layout="stack" data-gap="l">
+            <div class="item">
+            <h3>${countryname}- Finances</h3>
+            <div id="chart1"></div>
+            </div>
+        </div>
+        <hr><h3>${countryname} - Démographie</h3>
+        <div id="chart2"></div>`;
+
         let min1 = 0;
         let max1 = 0;
-
+        let clst_annee = {};
+        let pib_dette = {};
         data_clst.forEach(clst => {
             if ( clst.cde_pays === country ) {
+                if ( !clst_annee[clst.annee] ) {
+                    clst_annee[clst.annee] = clst['clst'];
+                }
+                if ( clst.annee == 2023 ) {
+                    pib_dette['pib'] = clst.pib;
+                    pib_dette['dette'] = clst.pib * clst.dette_tx_pib/100;
+                }
                 if ( clst.dette_par_hab*-1 < min1 ) {
                     min1 = clst.dette_par_hab*-1;
                 }
@@ -153,6 +204,11 @@ $(function() {
                     y: clst.depense_par_hab,
                     x: clst.annee
                 });
+                serie4chart1.data.push({
+                    //name: clst.annee,
+                    y: clst.pib_par_hab,
+                    x: clst.annee
+                });
 
                 serie1chart2.data.push({
                     //name: clst.annee,
@@ -172,9 +228,34 @@ $(function() {
 
             }
         });
+  
+        let tmplclstannee = `<table id="tbclst" class="tablemodal"><tr>
+        <th rowspan=2>Classements satisfaction<br>à l'égard de la vie</th>
+        <th>2013</th><th>2018</th><th>2021</th><th>2022</th><th>2023</th>
+        </tr>
+        <tr><td>${clst_annee[2013] || ''}</td>
+        <td>${clst_annee[2018] || ''}</td>
+        <td>${clst_annee[2021] || ''}</td>
+        <td>${clst_annee[2022] || ''}</td>
+        <td>${clst_annee[2023] || ''}</td>
+        </tr></table>`;
+
+        template = template.replace('@clst_annee@', tmplclstannee);
+        $('#modal').html(template);
+        $('td', '#tbclst').each(function() {
+            const val = $(this).text();
+            if (val*1 <= 5 && val*1 > 0) {
+                $(this).css('background-color', 'rgba(0, 107, 5, 0.5)');
+            } else if (val*1 < 11) {
+                $(this).css('background-color', 'rgba(255, 255, 0, 0.5)');
+            } else{
+                $(this).css('background-color', 'rgba(255, 0, 0, 0.5)');
+            }
+        });
+
 
         $('#modal').modal();
-        drawchart1([serie1chart1, serie2chart1, serie3chart1], {min:min1, max:max1});
+        drawchart1([serie1chart1, serie2chart1, serie3chart1, serie4chart1], {min:min1, max:max1});
         drawchart2([serie1chart2, serie2chart2, serie3chart2], {min:0, max:100});
     });
     
@@ -184,7 +265,7 @@ $(function() {
                 credits: { enabled:false },
                 chart: {
                     type: 'column',
-                    height:400,
+                    height:360,
                     marginTop:20
                 },
                 title: {
@@ -206,8 +287,8 @@ $(function() {
                     }
                 },
                 yAxis: {
-                        min: params.min,
-                        max: params.max,
+                        min: -60000,//params.min,
+                        max: 110000, //params.max,
                         title: {
                             text: '€ par habitant'
                         }
@@ -217,12 +298,14 @@ $(function() {
                         dataLabels: {
                             enabled: true,
                             formatter: function() {
-                                return new Intl.NumberFormat('fr-FR',{minimumFractionDigits: 0, maximumFractionDigits: 0}).format(this.y);
+                                const lab = this.y >= 0 ? this.y: this.y*-1;
+                                return new Intl.NumberFormat('fr-FR',{minimumFractionDigits: 0, maximumFractionDigits: 0}).format(lab);
                             }
                         },
                         tooltip: {
                             pointFormatter: function() {
-                                return '<span style="color:' + this.color + '">\u25CF</span> ' + this.series.name + ': <b>' + new Intl.NumberFormat('fr-FR',{minimumFractionDigits: 0, maximumFractionDigits: 0}).format(this.y) + ' €</b><br/>';
+                                const lab = this.y >= 0 ? this.y: this.y*-1;
+                                return '<span style="color:' + this.color + '">\u25CF</span> ' + this.series.name + ': <b>' + new Intl.NumberFormat('fr-FR',{minimumFractionDigits: 0, maximumFractionDigits: 0}).format(lab) + ' €</b><br/>';
                             }
                         },
                     }
@@ -237,7 +320,7 @@ $(function() {
                 credits: { enabled:false },
                 chart: {
                     type: 'column',
-                    height:400,
+                    height:360,
                     marginTop:20
                 },
                 title: {
@@ -296,10 +379,6 @@ $(function() {
         redrawThrottle();
     });
 
-    generateconnectors();
-
-    window.addEventListener('resize', redrawThrottle);
-    window.addEventListener('scroll', redrawThrottle);
 });
 
 
@@ -328,10 +407,12 @@ function connectCountry(country) {
 }
 
 function generateconnectors() {
+
     if($('#item_' + annees[0]).width() > window.innerWidth/2){ 
         return;
-      }
-    $('.card', '#item_' + annees[0]).each(function() {
+    }
+
+    $('.card', '#item_' + annees[0]).each(function() { 
         const country = $(this).attr('id').split('_')[1];
         annees.forEach((year, idx) => {
             if(annees[idx+1]){
@@ -344,11 +425,11 @@ function generateconnectors() {
 
 }
 
-function connectElements(selector1, selector2, width=4) {
+function connectElements(selector1, selector2, width=4) { 
     const strokecolor = pays_couleur[selector1.split('_')[1]] || '#333';
     let svg = document.getElementById("connections");
 
-    if (!svg) {
+    if (!svg) { 
         svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
         svg.setAttribute("id", "connections");
@@ -359,6 +440,7 @@ function connectElements(selector1, selector2, width=4) {
         svg.style.zIndex = "0";
 
         document.body.appendChild(svg);
+        //document.getElementById("bigchart").appendChild(svg);
     }
 
     // 🔥 IMPORTANT : taille du document (pas viewport)
