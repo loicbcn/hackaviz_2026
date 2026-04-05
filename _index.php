@@ -54,7 +54,7 @@ $annees = [2013,2018,2021,2022,2023];
     </div> -->
 <footer>
 Pour conclure, aucun indicateur ne semble expliquer à lui seul les raisons de la satisfaction à l'égard de la vie ressentie dans ces 15 pays.<br>
-Il semble apparaît que l'argent que dédient les états aux prestations sociales jouent un rôle conséquent.<br>
+Il apparaît que l'argent que dédient les états aux prestations sociales jouent un rôle conséquent.<br>
 La Finlande et l'Autriche, qui monopolisent les 2 premières places ont en commun des dettes et impôts élevées et de gros budgets prestations sociales.
             <div style="text-align:right; margin: 10px 5px 5px;">Pour le hackaviz 2026 de <a href="https://toulouse-dataviz.fr/">Toulouse DataViz</a></div>
 </footer>
